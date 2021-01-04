@@ -10,13 +10,28 @@ import 'package:flutter/services.dart';
 import 'AudioInfoClass.dart';
 
 /// A library to simply start an Android audio service with notification and control it
+const MethodChannel _nativeChannel = const MethodChannel("AudioService");
+
 class FlutterAudioAsService {
-  static const MethodChannel _nativeChannel =
-      const MethodChannel("AudioService");
   static AudioPlayerListener _audioListener;
 
-  // invoke Flutter from 
-  
+  static StreamController<PlayerState> _playerStateController =
+      new StreamController.broadcast();
+  static Stream<PlayerState> get onPlayerStateChanged =>
+      _playerStateController.stream;
+
+  static StreamController<Duration> _positionController =
+      new StreamController.broadcast();
+
+  static Stream<Duration> get onAudioPositionChanged =>
+      _positionController.stream;
+
+  static void setSub() {
+    _nativeChannel.setMethodCallHandler(_methodCallHandler);
+  }
+
+  // invoke Flutter from
+
   /// Lets the service send callbacks to Flutter ex. for interface updates.
   /// It's important to remove listeners in onDestroy() (not implemented)
   static void setListeners(AudioPlayerListener listener) {
@@ -30,33 +45,43 @@ class FlutterAudioAsService {
       case "onPlayerStateChanged":
         switch (call.arguments) {
           case "idle":
-            _audioListener.onPlayerStateChanged(PlayerState.idle);
+            _playerStateController?.add(PlayerState.idle);
+            _audioListener?.onPlayerStateChanged(PlayerState.idle);
             break;
 
           case "buffering":
-            _audioListener.onPlayerStateChanged(PlayerState.loading);
+            _playerStateController?.add(PlayerState.loading);
+            _audioListener?.onPlayerStateChanged(PlayerState.loading);
             break;
 
           case "playing":
-            _audioListener.onPlayerStateChanged(PlayerState.playing);
+            _playerStateController?.add(PlayerState.playing);
+            _audioListener?.onPlayerStateChanged(PlayerState.playing);
             break;
 
           case "paused":
-            _audioListener.onPlayerStateChanged(PlayerState.paused);
+            _playerStateController?.add(PlayerState.paused);
+            _audioListener?.onPlayerStateChanged(PlayerState.paused);
             break;
         }
         break;
 
       case "onPlayerPositionChanged":
-        _audioListener
-            .onPlayerPositionChanged(Duration(milliseconds: call.arguments));
+        try {
+          _positionController?.add(Duration(milliseconds: call.arguments));
+          _audioListener
+              ?.onPlayerPositionChanged(Duration(milliseconds: call.arguments));
+        } catch (e) {
+          // print('------------error----------');
+          // print(e.toString());
+        }
         break;
 
       case "onPlayerCompleted":
-        _audioListener.onPlayerCompleted();
+        _audioListener?.onPlayerCompleted();
         break;
 
-      // TODO: case launch app runApp() try this 
+      // TODO: case launch app runApp() try this
 
       default:
         print("ERROR: method not implemented");
@@ -144,7 +169,8 @@ class FlutterAudioAsService {
   }
 
   static Future<String> get platformVersion async {
-    final String version = await _nativeChannel.invokeMethod('getPlatformVersion');
+    final String version =
+        await _nativeChannel.invokeMethod('getPlatformVersion');
     return version;
   }
 }

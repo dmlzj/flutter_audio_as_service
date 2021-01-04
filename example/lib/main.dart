@@ -5,8 +5,8 @@
 //
 
 import 'package:flutter/material.dart';
-import 'package:flutter_audio_as_service/flutter_audio_as_service.dart';
-import 'package:flutter_audio_as_service/AudioInfoClass.dart';
+import 'package:flutter_audio_service/flutter_audio_as_service.dart';
+import 'package:flutter_audio_service/AudioInfoClass.dart';
 
 void main() => runApp(MyApp());
 
@@ -18,12 +18,12 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Duration audioLength = Duration(milliseconds: 0);
   Duration audioPosition = Duration(milliseconds: 0);
-
+  
   // See docs to find details about how to add fallback images and app icon
   AudioInfo trackDetails = AudioInfo(
     "Title", // Title
     "Author", // Artist
-    "https://file-examples.com/wp-content/uploads/2017/11/file_example_MP3_700KB.mp3", // Audio location (hhtps:// or file:///)
+    "https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_700KB.mp3", // Audio location (hhtps:// or file:///)
     "https://scdn.androidcommunity.com/wp-content/uploads/2018/02/flutter.jpeg", // Album cover (https:// or file:///)
     "app_icon" // Notification icon (drawable)
   );
@@ -133,6 +133,10 @@ class _MyAppState extends State<MyApp> {
               ),
               Text("Audio length: " + audioLength.toString()),
               Text("Player progress: " + audioPosition.toString() + " / " + audioLength.toString()),
+              RaisedButton(onPressed: () {
+                FlutterAudioAsService.unbind();
+              },
+              child: Text('data'),)
             ],
           ),
         ),
